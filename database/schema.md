@@ -1,167 +1,196 @@
 # Database Schema
-## Purpose 
-This document describes the database structure of Cohabit-AI
 
-The database stores information about colleges, students, AI
-interviews, extracted personality traits, and room recommendations.
+## Purpose
 
-*Traits = A trait is a distinguishing quality, characteristic, or feature of an individual's personal nature, biology.
+This document describes the database structure of Cohabit-AI.
 
+The database stores information about colleges, hostel allocation sessions, students, AI interviews, extracted personality traits, and room recommendations.
+
+> Traits = A distinguishing quality or characteristic of a student's personality, lifestyle, habits, or preferences.
 
 ---
 
-# Table 1: College 
+# Table 1: College
 
 Stores information about each college or school using Cohabit-AI.
 
-Atrributes:  --->
-- **id**
-  - Unique identifier for every college. **[integer]**
+### Attributes
+
+- **id (PK)**
+  - Unique identifier for every college. **[Integer]**
 
 - **name**
-  - Official name of the college.  **[String]**
+  - Official name of the college. **[String]**
 
 - **email**
-  - Official email address used by the administrator to log in. **[String]**
+  - Official administrator email used for login. **[String]**
 
 - **password**
-  - Encrypted (hashed) password used for authentication.  **[String]**
+  - Encrypted (hashed) administrator password. **[String]**
 
 ---
 
-# Table 2: Student
+# Table 2: AllocationSession
 
-Stores information about every student participating in the hostel room allocation process.
+Stores each hostel allocation event conducted by a college.
 
-**Attributes:**
+Example:
 
-* **id**
+- Hostel Allocation 2026
+- Hostel Allocation 2027
 
-  * Unique identifier for every student. **[Integer]**
+### Attributes
 
-* **college_id**
+- **id (PK)**
+  - Unique identifier for each allocation session. **[Integer]**
 
-  * Identifies the college to which the student belongs. This links the student with the College table. **[Integer]**
+- **college_id (FK)**
+  - Identifies which college owns this allocation session. **[Integer]**
 
-* **name**
+- **title**
+  - Name of the allocation session. **[String]**
 
-  * Full name of the student. **[String]**
+- **academic_year**
+  - Academic year for which allocation is conducted. **[String]**
 
-* **email**
+- **room_capacity**
+  - Number of students per room. **[Integer]**
 
-  * Student's official email address. **[String]**
-
-* **branch**
-
-  * Academic branch or department (e.g., CSE, ECE, ME). **[String]**
-
-* **year**
-
-  * Current academic year of the student (e.g., 1st, 2nd, 3rd). **[Integer]**
-
-* **gender**
-
-  * Gender of the student. Used to ensure valid hostel room allocation. **[String]**
+- **status**
+  - Current status (Draft / Active / Completed). **[String]**
 
 ---
 
-# Table 3: Interview
+# Table 3: Student
 
-Stores the AI interview conducted for each student.
+Stores information about every student participating in hostel room allocation.
 
-**Attributes:**
+### Attributes
 
-* **id**
+- **id/Reference_id (PK)**
+  - Unique identifier for every student. **[Integer]**
 
-  * Unique identifier for every interview. **[Integer]**
+- **college_id (FK)**
+  - Identifies the student's college. **[Integer]**
 
-* **student_id**
+- **allocation_session_id (FK)**
+  - Identifies the hostel allocation session. **[Integer]**
 
-  * Identifies which student completed the interview. **[Integer]**
+- **name**
+  - Full name of the student. **[String]**
 
-* **conversation**
+- **roll_number**
+  - Official college roll number. **[String]**
 
-  * Complete conversation between the AI interviewer and the student. **[Text/String]**
+- **email**
+  - Official student email. **[String]**
 
-* **completed_at** / **Time Stamp**
+- **branch**
+  - Academic branch (CSE, ECE, etc.). **[String]**
 
-  * Date and time when the interview was completed. **[DateTime]**
+- **year**
+  - Academic year. **[Integer]**
+
+- **gender**
+  - Student gender. **[String]**
 
 ---
 
-# Table 4: Traits
+# Table 4: Interview
+
+Stores AI interview details for each student.
+
+### Attributes
+
+- **id (PK)**
+  - Unique interview identifier. **[Integer]**
+
+- **student_id (FK)**
+  - Student who attended the interview. **[Integer]**
+
+- **conversation**
+  - Complete AI conversation transcript. **[Text]**
+
+- **completed_at**
+  - Interview completion timestamp. **[DateTime]**
+
+---
+
+# Table 5: Traits
 
 Stores personality traits extracted from the AI interview.
 
-**Attributes:**
+### Attributes
 
-* **id**
+- **id (PK)**
+  - Unique trait record. **[Integer]**
 
-  * Unique identifier for every trait record. **[Integer]**
+- **student_id (FK)**
+  - Student whose traits were extracted. **[Integer]**
 
-* **student_id**
+- **sleep_time**
+  - Preferred sleeping time. **[String]**
 
-  * Identifies the student whose traits were extracted. **[Integer]**
+- **wake_time**
+  - Preferred waking time. **[String]**
 
-* **sleep_time**
+- **study_style**
+  - Preferred study schedule. **[String]**
 
-  * Student's usual sleeping time. **[String]**
+- **noise_tolerance**
+  - Noise tolerance score. **[Float]**
 
-* **wake_time**
+- **cleanliness**
+  - Cleanliness score. **[Float]**
 
-  * Student's usual waking time. **[String]**
+- **social_level**
+  - Introvert–Extrovert score. **[Float]**
 
-* **study_style**
+- **flexible_preferences**
+  - Preferences the student is willing to compromise on. **[Text]**
 
-  * Preferred study schedule (Morning, Afternoon, Night). **[String]**
+- **non_negotiable_preferences**
+  - Preferences the student will never compromise on. **[Text]**
 
-* **noise_tolerance**
-
-  * Indicates how comfortable the student is with noise. **[Float]**
-
-* **cleanliness**
-
-  * Represents the student's cleanliness preference or habit score. **[Float]**
-
-* **social_level**
-
-  * Indicates whether the student is more introverted or extroverted. **[Float]**
-
-* **flexible_preferences**
-
-  * Preferences the student is willing to compromise on. **[Text]**
-
-* **non_negotiable_preferences**
-
-  * Preferences the student is not willing to compromise on. **[Text]**
+- **personality_summary**
+  - AI-generated summary of the student's personality. **[Text]**
 
 ---
 
-# Table 5: Recommendation
+# Table 6: Recommendation
 
-Stores the room allocation recommendations generated by the compatibility engine.
+Stores each room recommendation generated by the compatibility engine.
 
-**Attributes:**
+### Attributes
 
-* **id**
+- **id (PK)**
+  - Unique recommendation identifier. **[Integer]**
 
-  * Unique identifier for every recommendation. **[Integer]**
+- **allocation_session_id (FK)**
+  - Allocation session to which this recommendation belongs. **[Integer]**
 
-* **room_number**
+- **room_number**
+  - Recommended room number. **[String]**
 
-  * Room assigned by the recommendation engine. **[String]**
+- **compatibility_score**
+  - Overall compatibility score. **[Float]**
 
-* **student_ids**
+- **reason**
+  - AI-generated explanation for the recommendation. **[Text]**
 
-  * List of students recommended for the room. **[Array<Integer>]**
+---
 
-* **compatibility_score**
+# Table 7: RecommendationMember
 
-  * Overall compatibility score for the recommended room allocation. **[Float]**
+Stores which students belong to each recommendation.
 
-* **reason**
+### Attributes
 
-  * AI-generated explanation describing why the students were grouped together. **[Text/String]**
+- **id (PK)**
+  - Unique identifier. **[Integer]**
 
+- **recommendation_id (FK)**
+  - Recommended room. **[Integer]**
 
-
+- **student_id (FK)**
+  - Student assigned to that room. **[Integer]**
