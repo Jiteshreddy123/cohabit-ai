@@ -1,13 +1,11 @@
 import './App.css';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
     <div className="App">
       <h1>
-        Cohabit-AI<br></br>
-        AI Powered Hostel Compatibility<br></br>
-        hello this is the my first react app
-        this is second commit
+        <AdminDashboard />
       </h1>
     </div>
   );
