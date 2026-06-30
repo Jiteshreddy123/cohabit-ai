@@ -1,0 +1,3 @@
+POST /students
+
+GET /students
