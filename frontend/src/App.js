@@ -1,14 +1,27 @@
-import './App.css';
-import AdminDashboard from './pages/AdminDashboard';
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
-  return (
-    <div className="App">
-      <h1>
-        <AdminDashboard />
-      </h1>
-    </div>
-  );
+
+    return (
+
+        <div>
+
+            <Navbar />
+
+            <div style={{ display: "flex" }}>
+
+                <Sidebar />
+
+                <Dashboard />
+
+            </div>
+
+        </div>
+
+    );
+
 }
 
 export default App;
