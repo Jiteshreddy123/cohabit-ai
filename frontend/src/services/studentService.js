@@ -3,7 +3,18 @@ import axios from "axios";
 const API_URL = "http://localhost:8000";
 
 export const getStudents = async () => {
-    const response = await axios.get(`${API_URL}/students`);
+
+    const token = localStorage.getItem("token");
+
+    const response = await axios.get(
+        `${API_URL}/students`,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
     return response.data;
 };
 
