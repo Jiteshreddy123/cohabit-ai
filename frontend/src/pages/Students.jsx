@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import { getStudents } from "../services/studentService";
 
 function Students() {
@@ -7,41 +6,61 @@ function Students() {
     const [students, setStudents] = useState([]);
 
     useEffect(() => {
-
         loadStudents();
-
     }, []);
 
     async function loadStudents() {
-
-        const data = await getStudents();
-
-        setStudents(data);
-
+        try {
+            const data = await getStudents();
+            setStudents(data);
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     return (
-
         <div>
 
             <h1>Students</h1>
 
-            {
-                students.map(student => (
+            <table border="1">
 
-                    <p key={student.id}>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roll Number</th>
+                        <th>Branch</th>
+                        <th>Year</th>
+                        <th>Gender</th>
+                    </tr>
+                </thead>
 
-                        {student.name}
+                <tbody>
 
-                    </p>
+                    {students.map((student) => (
 
-                ))
-            }
+                        <tr key={student.id}>
+
+                            <td>{student.name}</td>
+
+                            <td>{student.roll_number}</td>
+
+                            <td>{student.branch}</td>
+
+                            <td>{student.year_of_study}</td>
+
+                            <td>{student.gender}</td>
+
+                        </tr>
+
+                    ))}
+
+                </tbody>
+
+            </table>
 
         </div>
-
     );
-
 }
 
 export default Students;
