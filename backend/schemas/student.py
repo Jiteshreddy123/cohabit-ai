@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import Literal
+from typing import Literal, Optional
 
 class StudentBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=255)
@@ -10,8 +10,9 @@ class StudentBase(BaseModel):
     gender: Literal["Male", "Female", "Other"]
 
 class StudentCreate(StudentBase):
-    college_id: int
+    college_id: Optional[int] = None
     allocation_session_id: int
+
 
 class StudentResponse(StudentBase):
     id: int

@@ -17,7 +17,8 @@ class AllocationSessionBase(BaseModel):
         return v
 
 class AllocationSessionCreate(AllocationSessionBase):
-    college_id: int
+    college_id: Optional[int] = None
+
 
 class AllocationSessionResponse(AllocationSessionBase):
     id: int
