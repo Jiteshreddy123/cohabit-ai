@@ -26,14 +26,17 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         """Build the PostgreSQL connection string."""
+        from urllib.parse import quote_plus
+        encoded_password = quote_plus(self.DB_PASSWORD)
         return (
-            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"postgresql://{self.DB_USER}:{encoded_password}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         )
 
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+
 
 
 # Singleton instance — import this everywhere
