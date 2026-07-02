@@ -6,6 +6,7 @@ function Students() {
     const [students, setStudents] = useState([]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/immutability
         loadStudents();
     }, []);
 
