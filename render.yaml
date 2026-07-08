@@ -1,9 +1,10 @@
-services:
+databases:
   # 1. The PostgreSQL Database
-  - type: pgo
-    name: cohabit-db
+  - name: cohabit-db
     plan: free
     region: singapore # You can change this based on your location
+
+services:
 
   # 2. The FastAPI Backend
   - type: web
