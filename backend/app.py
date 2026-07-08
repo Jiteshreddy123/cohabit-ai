@@ -94,9 +94,30 @@ app.include_router(interview_router)
 app.include_router(trait_router)
 app.include_router(recommendation_router)
 
-@app.get("/")
-def read_root():
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# ── Serve React Frontend ────────────────────────────────────────
+
+# Serve static assets (js, css) from the dist/assets folder
+if os.path.isdir("static/assets"):
+    app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
+
+@app.api_route("/{full_path:path}", methods=["GET"])
+def serve_frontend(full_path: str):
+    # Try to serve requested static file if it exists
+    file_path = os.path.join("static", full_path)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # Fallback to index.html for React Router
+    index_path = os.path.join("static", "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    
+    # Development fallback
     return {
-        "message": "Welcome to Cohabit-AI API",
+        "message": "Welcome to Cohabit-AI API. (Frontend not built yet)",
         "docs": "/docs"
     }
