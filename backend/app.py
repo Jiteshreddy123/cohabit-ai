@@ -1,10 +1,31 @@
+import logging
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 
-from routes import health_router, auth_router, session_router, student_router
+from config import settings, validate_settings
+
+from routes import (
+    health_router, auth_router, session_router, student_router,
+    interview_router, trait_router, recommendation_router
+)
 from utils.exceptions import AppError
+
+# ── Logging Configuration ────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
+# ── Validate Settings on Startup ─────────────────────────────
+try:
+    validate_settings()
+except RuntimeError as e:
+    logger.critical(f"Startup validation failed: {e}")
+    raise
 
 # ── App Initialization ────────────────────────────────────────
 app = FastAPI(
@@ -16,9 +37,15 @@ app = FastAPI(
 )
 
 # ── CORS Middleware ───────────────────────────────────────────
+# Parse allowed origins from settings — supports multiple comma-separated values
+_allowed_origins = [o.strip() for o in settings.FRONTEND_URL.split(",") if o.strip()]
+if settings.ENV != "production":
+    # In development, allow localhost on any port for convenience
+    _allowed_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins for local development and testing
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -50,9 +77,7 @@ def validation_error_handler(request: Request, exc: RequestValidationError):
 @app.exception_handler(Exception)
 def general_exception_handler(request: Request, exc: Exception):
     """Catch-all handler for unhandled internal exceptions to prevent leaking stack traces."""
-    # Log the actual exception locally for debugging
-    print(f"Unhandled Exception: {str(exc)}")
-    
+    logger.exception(f"Unhandled Exception on {request.method} {request.url}: {exc}")
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "An internal server error occurred. Please contact support."}
@@ -65,6 +90,9 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(session_router)
 app.include_router(student_router)
+app.include_router(interview_router)
+app.include_router(trait_router)
+app.include_router(recommendation_router)
 
 @app.get("/")
 def read_root():

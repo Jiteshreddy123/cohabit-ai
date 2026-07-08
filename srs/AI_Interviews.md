@@ -34,6 +34,7 @@ Sleep Time
 Wake Time
 Flexibility
 
+<!-- 
 ## Section 4 — Study Habits
 ### Q4. Tell us about your study habits.
 
@@ -203,3 +204,4 @@ Describe the type of roommate you think you would be most comfortable living wit
 Preferred Traits
 Avoided Traits
 Overall Compatibility Profile
+-->

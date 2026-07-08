@@ -38,3 +38,14 @@ def get_student_by_email(db: Session, email: str) -> Student | None:
 
 def get_student_by_roll_number(db: Session, roll_number: str) -> Student | None:
     return db.query(Student).filter(Student.roll_number == roll_number).first()
+
+def update_student(db: Session, db_student: Student, update_data: dict) -> Student:
+    for key, value in update_data.items():
+        setattr(db_student, key, value)
+    db.commit()
+    db.refresh(db_student)
+    return db_student
+
+def delete_student(db: Session, db_student: Student) -> None:
+    db.delete(db_student)
+    db.commit()

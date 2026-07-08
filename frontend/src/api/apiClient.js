@@ -1,0 +1,45 @@
+import axios from "axios";
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Interceptor to inject JWT token in every authenticated request
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor to handle common API errors globally
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Token expired or invalid -> log out
+      if (error.response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("college");
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
+      return Promise.reject(error.response.data || { detail: "An error occurred" });
+    }
+    return Promise.reject({ detail: "Cannot connect to server. Make sure backend is running." });
+  }
+);
+
+export default apiClient;
