@@ -14,7 +14,7 @@ from config import settings
 
 # ── Engine ────────────────────────────────────────────────────
 engine = create_engine(
-    settings.DATABASE_URL,
+    settings.get_db_url,
     pool_pre_ping=True,       # Verify connections before checkout
     pool_size=10,             # Max persistent connections
     max_overflow=20,          # Extra connections under load

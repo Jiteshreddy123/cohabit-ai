@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     ENV: str = "development"  # "development" | "production"
 
     # ── Database ──────────────────────────────────────────────
+    DATABASE_URL: str = ""
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_NAME: str = "cohabit-ai_DB"
@@ -34,8 +35,12 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
 
     @property
-    def DATABASE_URL(self) -> str:
-        """Build the PostgreSQL connection string."""
+    def get_db_url(self) -> str:
+        """Build or return the PostgreSQL connection string."""
+        if self.DATABASE_URL:
+            # SQLAlchemy 2.0 requires postgresql:// instead of postgres://
+            return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+            
         from urllib.parse import quote_plus
         encoded_password = quote_plus(self.DB_PASSWORD)
         return (
