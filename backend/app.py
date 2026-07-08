@@ -78,9 +78,14 @@ def validation_error_handler(request: Request, exc: RequestValidationError):
 def general_exception_handler(request: Request, exc: Exception):
     """Catch-all handler for unhandled internal exceptions to prevent leaking stack traces."""
     logger.exception(f"Unhandled Exception on {request.method} {request.url}: {exc}")
+    import traceback
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "An internal server error occurred. Please contact support."}
+        content={
+            "detail": "An internal server error occurred.",
+            "error_message": str(exc),
+            "traceback": traceback.format_exc()
+        }
     )
 
 # ── Include Routers ───────────────────────────────────────────
