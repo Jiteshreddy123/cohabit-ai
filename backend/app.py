@@ -36,6 +36,12 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# ── Create Database Tables ───────────────────────────────────
+from database import engine, Base
+import models # Ensure models are loaded
+Base.metadata.create_all(bind=engine)
+
+
 # ── CORS Middleware ───────────────────────────────────────────
 # Parse allowed origins from settings — supports multiple comma-separated values
 _allowed_origins = [o.strip() for o in settings.FRONTEND_URL.split(",") if o.strip()]
@@ -78,14 +84,9 @@ def validation_error_handler(request: Request, exc: RequestValidationError):
 def general_exception_handler(request: Request, exc: Exception):
     """Catch-all handler for unhandled internal exceptions to prevent leaking stack traces."""
     logger.exception(f"Unhandled Exception on {request.method} {request.url}: {exc}")
-    import traceback
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "detail": "An internal server error occurred.",
-            "error_message": str(exc),
-            "traceback": traceback.format_exc()
-        }
+        content={"detail": "An internal server error occurred. Please contact support."}
     )
 
 # ── Include Routers ───────────────────────────────────────────
