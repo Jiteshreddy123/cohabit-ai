@@ -1,53 +1,63 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { authApi } from "../api/authApi";
+import { LayoutDashboard, Users, UserPlus, BookOpen, Layers, Lightbulb, Settings, FileText } from "lucide-react";
 
 function Sidebar() {
   const isAuthenticated = authApi.isAuthenticated();
 
   if (!isAuthenticated) return null;
 
-  const linkStyle = ({ isActive }) => ({
-    display: "block",
-    padding: "12px 16px",
-    color: isActive ? "#3b82f6" : "#4b5563",
-    backgroundColor: isActive ? "#eff6ff" : "transparent",
-    textDecoration: "none",
-    borderRadius: "6px",
-    fontWeight: isActive ? "600" : "500",
-    marginBottom: "8px",
-    transition: "all 0.2s ease-in-out",
-  });
+  const links = [
+    { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
+    { to: "/sessions", label: "Allocation Sessions", icon: <Layers size={18} /> },
+    { to: "/students", label: "Students", icon: <Users size={18} /> },
+    { to: "/interview", label: "AI Interviews", icon: <FileText size={18} /> },
+    { to: "/recommendations", label: "Recommendations", icon: <Lightbulb size={18} /> },
+  ];
 
   return (
-    <div
-      style={{
-        width: "240px",
-        background: "#ffffff",
-        borderRight: "1px solid #e5e7eb",
-        padding: "24px 16px",
-        minHeight: "calc(100vh - 60px)",
-        boxSizing: "border-box",
-      }}
-    >
-      <h3 style={{ fontSize: "12px", textTransform: "uppercase", color: "#9ca3af", letterSpacing: "1px", margin: "0 0 16px 0", paddingLeft: "8px" }}>
-        Menu Panel
+    <div className="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 px-4 py-6 min-h-[calc(100vh-64px)] flex flex-col transition-colors">
+      <h3 className="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider mb-4 px-3">
+        Menu
       </h3>
-
-      <nav>
-        <NavLink to="/" style={linkStyle}>
-          Dashboard & Sessions
-        </NavLink>
-        <NavLink to="/students" style={linkStyle}>
-          Students Enrollment
-        </NavLink>
-        <NavLink to="/interview" style={linkStyle}>
-          Simulate Interview
-        </NavLink>
-        <NavLink to="/recommendations" style={linkStyle}>
-          Room Recommendations
-        </NavLink>
+      <nav className="flex-1 space-y-1">
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400"
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+              }`
+            }
+          >
+            {link.icon}
+            {link.label}
+          </NavLink>
+        ))}
       </nav>
+      
+      <div className="mt-8">
+        <h3 className="text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider mb-4 px-3">
+          Account
+        </h3>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400"
+                : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+            }`
+          }
+        >
+          <Settings size={18} />
+          Profile Settings
+        </NavLink>
+      </div>
     </div>
   );
 }

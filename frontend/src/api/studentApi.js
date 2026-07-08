@@ -15,5 +15,15 @@ export const studentApi = {
   createStudent: async (studentData) => {
     const response = await apiClient.post("/students", studentData);
     return response.data;
+  },
+
+  updateStudent: async (id, studentData) => {
+    const response = await apiClient.put(`/students/${id}`, studentData);
+    return response.data;
+  },
+
+  deleteStudent: async (id) => {
+    const response = await apiClient.delete(`/students/${id}`);
+    return response.data;
   }
 };

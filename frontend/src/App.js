@@ -1,79 +1,65 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import PageLayout from "./layouts/PageLayout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import StudentList from "./pages/StudentList";
+import StudentForm from "./pages/StudentForm";
+import StudentDetails from "./pages/StudentDetails";
 import Interview from "./pages/Interview";
+import InterviewDetails from "./pages/InterviewDetails";
+import SessionList from "./pages/SessionList";
+import SessionForm from "./pages/SessionForm";
+import SessionStructure from "./pages/SessionStructure";
+import Recommendations from "./pages/Recommendations";
+import RoomDetails from "./pages/RoomDetails";
+import Profile from "./pages/Profile";
 import Login from "./pages/login";
-import { authApi } from "./api/authApi";
+import Landing from "./pages/Landing";
+import NotFound from "./pages/NotFound";
 
-const ProtectedLayout = ({ children }) => {
-  if (!authApi.isAuthenticated()) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return (
-    <div>
-      <Navbar />
-      <div style={{ display: "flex", minHeight: "calc(100vh - 60px)" }}>
-        <Sidebar />
-        <div style={{ flex: 1, backgroundColor: "#f9fafb", padding: "30px", boxSizing: "border-box" }}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
+// Helper: wraps a page in both PageLayout and ProtectedRoute
+const Protected = ({ children }) => (
+  <ProtectedRoute>
+    <PageLayout>{children}</PageLayout>
+  </ProtectedRoute>
+);
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        
-        <Route
-          path="/"
-          element={
-            <ProtectedLayout>
-              <Dashboard />
-            </ProtectedLayout>
-          }
-        />
-        
-        <Route
-          path="/students"
-          element={
-            <ProtectedLayout>
-              <StudentList />
-            </ProtectedLayout>
-          }
-        />
-        
-        <Route
-          path="/interview"
-          element={
-            <ProtectedLayout>
-              <Interview />
-            </ProtectedLayout>
-          }
-        />
-        
-        <Route
-          path="/recommendations"
-          element={
-            <ProtectedLayout>
-              <div style={{ padding: "20px", background: "white", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
-                <h2>Room Recommendations</h2>
-                <p style={{ color: "#6b7280" }}>Similarity extraction & Room matching calculations are in progress.</p>
-              </div>
-            </ProtectedLayout>
-          }
-        />
-        
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          {/* ── Public Routes ──────────────────────────────────── */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+
+          {/* ── Protected Routes ───────────────────────────────── */}
+          <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+
+          <Route path="/sessions" element={<Protected><SessionList /></Protected>} />
+          <Route path="/sessions/new" element={<Protected><SessionForm /></Protected>} />
+          <Route path="/sessions/:id/structure" element={<Protected><SessionStructure /></Protected>} />
+
+          <Route path="/students" element={<Protected><StudentList /></Protected>} />
+          <Route path="/students/new" element={<Protected><StudentForm /></Protected>} />
+          <Route path="/students/:id" element={<Protected><StudentDetails /></Protected>} />
+          <Route path="/students/:id/edit" element={<Protected><StudentForm isEditing /></Protected>} />
+
+          <Route path="/interview" element={<Protected><Interview /></Protected>} />
+          <Route path="/interview/:id" element={<Protected><InterviewDetails /></Protected>} />
+
+          <Route path="/recommendations" element={<Protected><Recommendations /></Protected>} />
+          <Route path="/recommendations/room/:id" element={<Protected><RoomDetails /></Protected>} />
+
+          <Route path="/profile" element={<Protected><Profile /></Protected>} />
+
+          {/* ── 404 ────────────────────────────────────────────── */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

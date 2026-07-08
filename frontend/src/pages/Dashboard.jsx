@@ -1,39 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { sessionApi } from "../api/sessionApi";
 import { studentApi } from "../api/studentApi";
-import StatCard from "../components/StatCard";
+import { Users, Layers, Lightbulb, TrendingUp, AlertCircle, RefreshCw, Building2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
-// Session validation schema using Zod
-const sessionSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters").max(255),
-  academic_year: z.string().regex(/^\d{4}(-\d{2,4})?$/, "Must be YYYY, YYYY-YY or YYYY-YYYY (e.g. 2024-2025)"),
-  room_capacity: z.preprocess(
-    (val) => parseInt(val, 10),
-    z.number().positive("Capacity must be greater than 0")
-  ),
-});
+function StatCard({ title, value, icon, colorClass }) {
+  return (
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+      <div className={`p-4 rounded-lg ${colorClass}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 function Dashboard() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
-  const [activeSessionId, setActiveSessionId] = useState(
-    localStorage.getItem("activeSessionId") ? parseInt(localStorage.getItem("activeSessionId"), 10) : null
-  );
   const [stats, setStats] = useState({ studentsCount: 0 });
 
-  // Initialize Create Session form with Zod resolver
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm({
-    resolver: zodResolver(sessionSchema),
-  });
+  const activeSessionId = localStorage.getItem("activeSessionId")
+    ? parseInt(localStorage.getItem("activeSessionId"), 10)
+    : null;
+
+  // Calculate real total bed capacity from room_inventory
+  const calcTotalBeds = (session) => {
+    if (!session?.room_inventory || Object.keys(session.room_inventory).length === 0) return null;
+    return Object.entries(session.room_inventory).reduce(
+      (sum, [cap, count]) => sum + parseInt(cap) * parseInt(count),
+      0
+    );
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -42,21 +44,18 @@ function Dashboard() {
       const sessionData = await sessionApi.getSessions();
       setSessions(sessionData);
 
-      // Default active session to first available if none is selected
       if (sessionData.length > 0 && !activeSessionId) {
         const defaultId = sessionData[0].id;
         localStorage.setItem("activeSessionId", defaultId);
-        setActiveSessionId(defaultId);
       }
 
-      // Fetch student count if there is an active session
       const activeId = activeSessionId || (sessionData.length > 0 ? sessionData[0].id : null);
       if (activeId) {
         const studentData = await studentApi.getStudents(activeId);
         setStats({ studentsCount: studentData.length });
       }
     } catch (err) {
-      setApiError(err.detail || "Failed to load allocation sessions.");
+      setApiError(err.detail || "Failed to load dashboard data.");
     } finally {
       setLoading(false);
     }
@@ -66,221 +65,127 @@ function Dashboard() {
     loadData();
   }, [activeSessionId]);
 
-  const selectActiveSession = (id) => {
-    localStorage.setItem("activeSessionId", id);
-    setActiveSessionId(id);
-  };
+  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
+  const totalBeds = calcTotalBeds(activeSession);
+  const vacancySeats = totalBeds !== null ? totalBeds - stats.studentsCount : null;
 
-  const onSubmit = async (data) => {
-    setApiError(null);
-    try {
-      const newSession = await sessionApi.createSession(data);
-      setSessions((prev) => [...prev, newSession]);
-      selectActiveSession(newSession.id);
-      reset();
-    } catch (err) {
-      setApiError(err.detail || "Failed to create session.");
-    }
-  };
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <h1 style={{ margin: 0, fontSize: "28px", color: "#111827", fontWeight: "bold" }}>
-          Dashboard
-        </h1>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard Overview</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor your allocation sessions and student metrics.</p>
+        </div>
         <button
           onClick={loadData}
-          style={{
-            backgroundColor: "#ffffff",
-            border: "1px solid #d1d5db",
-            padding: "8px 16px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontSize: "14px",
-            color: "#374151",
-            fontWeight: "500",
-          }}
+          disabled={loading}
+          className="flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm disabled:opacity-50"
         >
-          Refresh Data
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          Refresh
         </button>
       </div>
 
       {apiError && (
-        <div style={{ padding: "12px", backgroundColor: "#fef2f2", color: "#ef4444", borderRadius: "6px", fontSize: "14px", marginBottom: "24px", border: "1px solid #fee2e2" }}>
-          {apiError}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+          <AlertCircle className="text-red-500 mt-0.5 mr-3 shrink-0" size={18} />
+          <div className="text-sm text-red-700">{apiError}</div>
         </div>
       )}
 
-      {/* Statistics Section */}
-      <h2 style={{ fontSize: "18px", color: "#374151", marginBottom: "16px", fontWeight: "600" }}>
-        Overview Statistics
-      </h2>
-      <div style={{ display: "flex", gap: "20px", marginBottom: "32px" }}>
-        <StatCard title="Enrolled Students (Active Session)" value={stats.studentsCount} />
-        <StatCard title="Total Allocation Sessions" value={sessions.length} />
-        <StatCard title="Recommendation Runs" value="0 (Draft Status)" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Sessions"
+          value={sessions.length}
+          icon={<Layers size={24} className="text-brand-600 dark:text-brand-400" />}
+          colorClass="bg-brand-50 dark:bg-brand-500/10"
+        />
+        <StatCard
+          title="Total Hostel Capacity"
+          value={totalBeds !== null ? `${totalBeds} beds` : "Not configured"}
+          icon={<Building2 size={24} className="text-blue-600 dark:text-blue-400" />}
+          colorClass="bg-blue-50 dark:bg-blue-500/10"
+        />
+        <StatCard
+          title="Enrolled Students"
+          value={stats.studentsCount}
+          icon={<Users size={24} className="text-purple-600 dark:text-purple-400" />}
+          colorClass="bg-purple-50 dark:bg-purple-500/10"
+        />
+        <StatCard
+          title="Vacancy Seats"
+          value={vacancySeats !== null ? vacancySeats : "—"}
+          icon={<TrendingUp size={24} className="text-amber-600 dark:text-amber-400" />}
+          colorClass="bg-amber-50 dark:bg-amber-500/10"
+        />
       </div>
 
-      <div style={{ display: "flex", gap: "30px", flexWrap: "wrap" }}>
-        {/* Allocation Sessions Management */}
-        <div style={{ flex: 2, minWidth: "400px", background: "white", padding: "24px", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
-          <h2 style={{ marginTop: 0, fontSize: "18px", color: "#111827", marginBottom: "20px", fontWeight: "600" }}>
-            Allocation Sessions
-          </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden flex flex-col transition-colors">
+          <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Sessions</h2>
+            <Link to="/sessions" className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300">View All →</Link>
+          </div>
 
-          {loading ? (
-            <p style={{ color: "#6b7280" }}>Loading sessions...</p>
-          ) : sessions.length === 0 ? (
-            <p style={{ color: "#6b7280" }}>No sessions found. Create one to get started.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {sessions.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => selectActiveSession(s.id)}
-                  style={{
-                    padding: "16px",
-                    borderRadius: "8px",
-                    border: s.id === activeSessionId ? "2px solid #3b82f6" : "1px solid #e5e7eb",
-                    backgroundColor: s.id === activeSessionId ? "#eff6ff" : "#ffffff",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "#111827", fontWeight: "600" }}>
-                      {s.title || `Session #${s.id}`}
-                    </h3>
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: "600",
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        backgroundColor: s.session_status === "Active" ? "#dcfce7" : "#f3f4f6",
-                        color: s.session_status === "Active" ? "#16a34a" : "#4b5563",
-                      }}
-                    >
-                      {s.session_status}
-                    </span>
+          <div className="p-6 flex-1">
+            {loading ? (
+              <div className="flex justify-center py-8 text-gray-500 dark:text-gray-400"><RefreshCw className="animate-spin" /></div>
+            ) : sessions.length === 0 ? (
+              <div className="text-center py-10">
+                <Layers className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600 mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 mb-4">No sessions created yet.</p>
+                <Link to="/sessions/new" className="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-600 hover:bg-brand-500">
+                  Create First Session
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sessions.slice(0, 3).map((s) => (
+                  <div key={s.id} className={`p-4 rounded-lg border flex items-center justify-between ${s.id === activeSessionId ? 'border-brand-200 dark:border-brand-500/30 bg-brand-50 dark:bg-brand-500/10' : 'border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700'}`}>
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">{s.title}</h3>
+                        {s.id === activeSessionId && (
+                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-brand-100 dark:bg-brand-500/20 text-brand-700 dark:text-brand-300">Active</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Year: {s.academic_year}
+                        {s.room_inventory && Object.keys(s.room_inventory).length > 0
+                          ? ` • ${Object.entries(s.room_inventory).map(([k, v]) => `${v}×${k}-bed`).join(", ")}`
+                          : " • No rooms configured"}
+                      </p>
+                    </div>
+                    <Link to={`/sessions`} className="text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 p-2 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
+                      <span className="sr-only">View</span>
+                      →
+                    </Link>
                   </div>
-                  <p style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#4b5563" }}>
-                    Academic Year: <strong>{s.academic_year}</strong> | Room Capacity: <strong>{s.room_capacity} students/room</strong>
-                  </p>
-                  {s.id === activeSessionId && (
-                    <span style={{ fontSize: "12px", color: "#2563eb", fontWeight: "600" }}>
-                      ✓ Currently Active Session for Student Registrations
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Create Session Section */}
-        <div style={{ flex: 1, minWidth: "300px", background: "white", padding: "24px", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
-          <h2 style={{ marginTop: 0, fontSize: "18px", color: "#111827", marginBottom: "20px", fontWeight: "600" }}>
-            Create New Session
-          </h2>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ display: "block", fontSize: "14px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
-                Session Title / Description
-              </label>
-              <input
-                type="text"
-                {...register("title")}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  border: errors.title ? "1px solid #ef4444" : "1px solid #d1d5db",
-                  outline: "none",
-                  fontSize: "14px",
-                  boxSizing: "border-box",
-                }}
-                placeholder="e.g. 2025 B.Tech Freshers"
-              />
-              {errors.title && (
-                <span style={{ fontSize: "12px", color: "#ef4444", marginTop: "4px", display: "block" }}>
-                  {errors.title.message}
-                </span>
-              )}
-            </div>
+        <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-xl border border-brand-700 shadow-sm text-white overflow-hidden relative flex flex-col justify-between">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white opacity-5 blur-3xl"></div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <label style={{ display: "block", fontSize: "14px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
-                Academic Year
-              </label>
-              <input
-                type="text"
-                {...register("academic_year")}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  border: errors.academic_year ? "1px solid #ef4444" : "1px solid #d1d5db",
-                  outline: "none",
-                  fontSize: "14px",
-                  boxSizing: "border-box",
-                }}
-                placeholder="e.g. 2024-25 or 2024-2025"
-              />
-              {errors.academic_year && (
-                <span style={{ fontSize: "12px", color: "#ef4444", marginTop: "4px", display: "block" }}>
-                  {errors.academic_year.message}
-                </span>
-              )}
+          <div className="p-8 relative z-10">
+            <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-sm mb-6">
+              <Lightbulb className="text-white" size={24} />
             </div>
+            <h2 className="text-2xl font-bold mb-2">Ready to allocate?</h2>
+            <p className="text-brand-100 mb-8 leading-relaxed">
+              Once you have enrolled all students and completed AI personality interviews, run the optimization engine.
+            </p>
+          </div>
 
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontSize: "14px", fontWeight: "500", color: "#374151", marginBottom: "6px" }}>
-                Hostel Room Capacity
-              </label>
-              <input
-                type="number"
-                {...register("room_capacity")}
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  border: errors.room_capacity ? "1px solid #ef4444" : "1px solid #d1d5db",
-                  outline: "none",
-                  fontSize: "14px",
-                  boxSizing: "border-box",
-                }}
-                placeholder="e.g. 2"
-              />
-              {errors.room_capacity && (
-                <span style={{ fontSize: "12px", color: "#ef4444", marginTop: "4px", display: "block" }}>
-                  {errors.room_capacity.message}
-                </span>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              style={{
-                width: "100%",
-                padding: "10px",
-                backgroundColor: "#10b981",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "15px",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
-              }}
-              onMouseOver={(e) => { if (!isSubmitting) e.target.style.backgroundColor = "#059669"; }}
-              onMouseOut={(e) => { if (!isSubmitting) e.target.style.backgroundColor = "#10b981"; }}
-            >
-              {isSubmitting ? "Creating..." : "Create Session"}
-            </button>
-          </form>
+          <div className="p-6 bg-black/10 border-t border-white/10 relative z-10">
+            <Link to="/recommendations" className="block w-full text-center bg-white text-brand-700 hover:bg-gray-50 py-3 px-4 rounded-lg font-bold text-sm shadow-sm transition-colors">
+              Go to Recommendations
+            </Link>
+          </div>
         </div>
       </div>
     </div>

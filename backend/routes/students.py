@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from typing import Optional
 from database import get_db
-from schemas.student import StudentCreate, StudentResponse
+from schemas.student import StudentCreate, StudentResponse, StudentUpdate
 from schemas.college import CollegeResponse
 import services.student_service as student_service
 from routes.auth import get_current_college
@@ -54,3 +54,30 @@ def get_student(
     if student.college_id != current_college.id:
         raise AuthenticationError("You do not have permission to access this student record")
     return student
+
+@router.put(
+    "/{id}",
+    response_model=StudentResponse,
+    summary="Update a Student record",
+    description="Updates an existing student's details for the logged-in college."
+)
+def update_student(
+    id: int,
+    student_in: StudentUpdate,
+    db: Session = Depends(get_db),
+    current_college: CollegeResponse = Depends(get_current_college)
+):
+    return student_service.update_student(db, id, current_college.id, student_in)
+
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a Student record",
+    description="Deletes a student record for the logged-in college."
+)
+def delete_student(
+    id: int,
+    db: Session = Depends(get_db),
+    current_college: CollegeResponse = Depends(get_current_college)
+):
+    student_service.delete_student(db, id, current_college.id)

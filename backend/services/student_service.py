@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from schemas.student import StudentCreate
+from schemas.student import StudentCreate, StudentUpdate
 from models.student import Student
 import crud.student as crud_student
 import crud.college as crud_college
@@ -51,3 +51,33 @@ def get_student_by_id(db: Session, student_id: int) -> Student:
     if not student:
         raise NotFoundError(f"Student with ID {student_id} not found")
     return student
+
+def update_student(db: Session, student_id: int, college_id: int, student_update: StudentUpdate) -> Student:
+    db_student = get_student_by_id(db, student_id)
+    if db_student.college_id != college_id:
+        raise NotFoundError(f"Student with ID {student_id} not found in your college")
+
+    update_data = student_update.model_dump(exclude_unset=True)
+    
+    if "email" in update_data and update_data["email"] != db_student.email:
+        existing = crud_student.get_student_by_email(db, email=update_data["email"])
+        if existing:
+            raise DuplicateError(f"Student with email '{update_data['email']}' already exists")
+            
+    if "roll_number" in update_data and update_data["roll_number"] != db_student.roll_number:
+        existing = crud_student.get_student_by_roll_number(db, roll_number=update_data["roll_number"])
+        if existing:
+            raise DuplicateError(f"Student with roll number '{update_data['roll_number']}' already exists")
+            
+    if "allocation_session_id" in update_data and update_data["allocation_session_id"] != db_student.allocation_session_id:
+        session = crud_session.get_session_by_id(db, session_id=update_data["allocation_session_id"])
+        if not session or session.college_id != college_id:
+            raise NotFoundError(f"Allocation session with ID {update_data['allocation_session_id']} not found")
+
+    return crud_student.update_student(db, db_student, update_data)
+
+def delete_student(db: Session, student_id: int, college_id: int) -> None:
+    db_student = get_student_by_id(db, student_id)
+    if db_student.college_id != college_id:
+        raise NotFoundError(f"Student with ID {student_id} not found in your college")
+    crud_student.delete_student(db, db_student)
