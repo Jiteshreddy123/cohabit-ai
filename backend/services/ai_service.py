@@ -157,6 +157,12 @@ def process_interview_end(db: Session, student_id: int):
         "nnp": traits_data.get("non_negotiable_preferences"),
         "ps": traits_data.get("personality_summary")
     })
+    
+    db.execute(
+        text("UPDATE student SET interview_status = 'Completed' WHERE id = :sid"),
+        {"sid": student_id}
+    )
+    
     db.commit()
     return traits_data
 

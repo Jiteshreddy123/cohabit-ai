@@ -30,5 +30,10 @@ export const sessionApi = {
     });
     return response.data;
   },
+
+  publishSession: async (id) => {
+    const response = await apiClient.put(`/allocation-sessions/${id}/publish`);
+    return response.data;
+  },
 };
 

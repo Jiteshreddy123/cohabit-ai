@@ -4,9 +4,10 @@ import { LogOut, Home, Sun, Moon } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 
 function Navbar() {
-  const college = authApi.getCurrentCollege();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const isAuthenticated = authApi.isAuthenticated();
   const { isDarkMode, toggleDarkMode } = useTheme();
+  const isAdmin = user.role === "admin";
 
   return (
     <nav className="bg-dark-900 text-white px-6 h-16 flex justify-between items-center shadow-sm sticky top-0 z-50">
@@ -18,14 +19,14 @@ function Navbar() {
           Cohabit-AI
         </h2>
         <span className="text-xs bg-brand-600/20 text-brand-300 px-2.5 py-1 rounded-full font-medium ml-2 border border-brand-500/20">
-          Admin Portal
+          {isAdmin ? "Admin Portal" : "Student Portal"}
         </span>
       </div>
 
       {isAuthenticated && (
         <div className="flex items-center gap-6">
           <span className="text-sm text-gray-400 hidden sm:inline">
-            Welcome, <strong className="text-white font-medium">{college?.email}</strong>
+            Welcome, <strong className="text-white font-medium">{user.email}</strong>
           </span>
           
           <button

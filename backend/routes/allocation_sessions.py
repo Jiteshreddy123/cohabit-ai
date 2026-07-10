@@ -87,3 +87,21 @@ def update_session_status(
         )
     except (NotFoundError, ValidationError) as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+@router.put("/{session_id}/publish", response_model=AllocationSessionResponse)
+def publish_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_college=Depends(get_current_college)
+):
+    """Publish the session to make room allocations visible to students."""
+    try:
+        session = session_service.get_allocation_session_by_id(db, session_id)
+        if session.college_id != current_college.id:
+            raise HTTPException(status_code=403, detail="Access denied")
+        session.is_published = not session.is_published
+        db.commit()
+        db.refresh(session)
+        return session
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=e.message)

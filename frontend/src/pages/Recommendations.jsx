@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Lightbulb, Users, CheckCircle, AlertCircle, Loader2, ChevronRight, DoorOpen, Award } from "lucide-react";
+import { Lightbulb, Users, CheckCircle, AlertCircle, Loader2, ChevronRight, DoorOpen, Award, Globe, Globe2 } from "lucide-react";
 import { sessionApi } from "../api/sessionApi";
 import { recommendationApi } from "../api/recommendationApi";
 import { useNavigate } from "react-router-dom";
@@ -107,6 +107,21 @@ function Recommendations() {
         recommendations.length
       : 0;
 
+  const currentSession = sessions.find((s) => s.id === parseInt(selectedSessionId, 10));
+
+  const handlePublish = async () => {
+    if (!selectedSessionId) return;
+    try {
+      setLoading(true);
+      await sessionApi.publishSession(selectedSessionId);
+      await fetchSessions();
+    } catch (err) {
+      setError("Failed to publish/unpublish session.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -145,6 +160,21 @@ function Recommendations() {
             )}
             Generate New Allocations
           </button>
+
+          {currentSession && (
+            <button
+              onClick={handlePublish}
+              disabled={loading || generating || recommendations.length === 0}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm font-medium transition-colors disabled:opacity-50 text-sm ${
+                currentSession.is_published 
+                  ? "bg-red-600 hover:bg-red-700 text-white" 
+                  : "bg-green-600 hover:bg-green-700 text-white"
+              }`}
+            >
+              {currentSession.is_published ? <Globe2 size={16} /> : <Globe size={16} />}
+              {currentSession.is_published ? "Unpublish" : "Publish Allocations"}
+            </button>
+          )}
         </div>
       </div>
 

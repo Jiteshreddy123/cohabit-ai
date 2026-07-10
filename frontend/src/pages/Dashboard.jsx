@@ -3,6 +3,8 @@ import { sessionApi } from "../api/sessionApi";
 import { studentApi } from "../api/studentApi";
 import { Users, Layers, Lightbulb, TrendingUp, AlertCircle, RefreshCw, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { authApi } from "../api/authApi";
+import StudentDashboard from "./StudentDashboard";
 
 function StatCard({ title, value, icon, colorClass }) {
   return (
@@ -23,6 +25,8 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
   const [stats, setStats] = useState({ studentsCount: 0 });
+  const role = authApi.getUserRole();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const activeSessionId = localStorage.getItem("activeSessionId")
     ? parseInt(localStorage.getItem("activeSessionId"), 10)
@@ -62,13 +66,20 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    loadData();
-  }, [activeSessionId]);
+    if (role === "admin") {
+      loadData();
+    } else {
+      setLoading(false);
+    }
+  }, [activeSessionId, role]);
 
   const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0];
   const totalBeds = calcTotalBeds(activeSession);
   const vacancySeats = totalBeds !== null ? totalBeds - stats.studentsCount : null;
 
+  if (role === "student") {
+    return <StudentDashboard />;
+  }
 
   return (
     <div className="space-y-6">
@@ -76,6 +87,12 @@ function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Dashboard Overview</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Monitor your allocation sessions and student metrics.</p>
+          {user.collegeCode && (
+            <div className="mt-2 inline-flex flex-col sm:flex-row items-start sm:items-center p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-lg">
+              <span className="text-sm font-medium text-blue-800 dark:text-blue-300 mr-2">Your College Code (Share with Students):</span>
+              <code className="px-2 py-1 bg-white dark:bg-gray-800 rounded font-mono font-bold text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 shadow-sm text-sm">{user.collegeCode}</code>
+            </div>
+          )}
         </div>
         <button
           onClick={loadData}

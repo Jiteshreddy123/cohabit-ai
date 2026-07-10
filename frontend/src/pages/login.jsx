@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { authApi } from "../api/authApi";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Building2, Mail, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 
 const loginSchema = z.object({
@@ -172,6 +172,15 @@ function Login() {
               >
                 {isRegister ? "Sign in to existing account" : "Register a new college"}
               </button>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                to="/student-login"
+                className="w-full flex justify-center py-2.5 px-4 border border-brand-200 dark:border-brand-800 rounded-lg shadow-sm text-sm font-medium text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors"
+              >
+                I am a Student
+              </Link>
             </div>
           </div>
         </div>

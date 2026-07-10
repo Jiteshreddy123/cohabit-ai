@@ -68,6 +68,12 @@ function Landing() {
             >
               Admin Login
             </Link>
+            <Link 
+              to="/student-login"
+              className="w-full sm:w-auto px-8 py-4 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-400 rounded-xl font-semibold text-lg transition-all flex items-center justify-center hover:-translate-y-1"
+            >
+              Student Portal
+            </Link>
           </div>
         </div>
 

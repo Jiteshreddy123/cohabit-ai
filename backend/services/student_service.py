@@ -5,6 +5,7 @@ import crud.student as crud_student
 import crud.college as crud_college
 import crud.allocation_session as crud_session
 from utils.exceptions import NotFoundError, DuplicateError, ValidationError
+from services.auth_service import hash_password
 
 def create_student(db: Session, student: StudentCreate) -> Student:
     # Validate college exists
@@ -37,7 +38,8 @@ def create_student(db: Session, student: StudentCreate) -> Student:
     if not (1 <= student.year_of_study <= 5):
         raise ValidationError("Year of study must be between 1 and 5")
 
-    return crud_student.create_student(db, student)
+    hashed_pwd = hash_password(student.roll_number)
+    return crud_student.create_student(db, student, hashed_pwd)
 
 def get_students(
     db: Session, 

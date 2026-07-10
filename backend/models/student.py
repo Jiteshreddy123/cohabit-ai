@@ -20,6 +20,8 @@ class Student(Base):
     branch = Column(String(100), nullable=False)
     year_of_study = Column(Integer, nullable=False)
     gender = Column(String(10), nullable=False)
+    password = Column(String(255), nullable=True)
+    interview_status = Column(String(20), default="Pending")
 
     # ── Check Constraints ─────────────────────────────────────
     __table_args__ = (

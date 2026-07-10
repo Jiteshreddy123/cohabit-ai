@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from models.student import Student
 from schemas.student import StudentCreate
 
-def create_student(db: Session, student: StudentCreate) -> Student:
+def create_student(db: Session, student: StudentCreate, hashed_password: str) -> Student:
     db_student = Student(
         college_id=student.college_id,
         allocation_session_id=student.allocation_session_id,
@@ -11,7 +11,8 @@ def create_student(db: Session, student: StudentCreate) -> Student:
         email=student.email,
         branch=student.branch,
         year_of_study=student.year_of_study,
-        gender=student.gender
+        gender=student.gender,
+        password=hashed_password
     )
     db.add(db_student)
     db.commit()

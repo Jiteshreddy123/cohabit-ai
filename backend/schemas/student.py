@@ -18,6 +18,7 @@ class StudentResponse(StudentBase):
     id: int
     college_id: int
     allocation_session_id: int
+    interview_status: str
 
     class Config:
         from_attributes = True
@@ -30,3 +31,8 @@ class StudentUpdate(BaseModel):
     year_of_study: Optional[int] = Field(None, ge=1, le=5)
     gender: Optional[Literal["Male", "Female", "Other"]] = None
     allocation_session_id: Optional[int] = None
+
+class StudentLoginRequest(BaseModel):
+    college_code: str
+    email: EmailStr
+    password: str

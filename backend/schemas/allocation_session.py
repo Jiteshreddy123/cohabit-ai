@@ -74,6 +74,7 @@ class AllocationSessionResponse(AllocationSessionBase):
     id: int
     college_id: int
     session_status: str
+    is_published: bool
 
     class Config:
         from_attributes = True

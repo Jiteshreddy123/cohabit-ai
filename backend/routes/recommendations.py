@@ -3,11 +3,50 @@ from sqlalchemy.orm import Session
 from database import get_db
 from routes.auth import get_current_college
 from models.recommendation import Recommendation
+from models.recommendation_member import RecommendationMember
 from schemas.recommendation import RecommendationResponse
+from routes.auth import get_current_student
 from typing import List
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
 
+
+@router.get(
+    "/my-room",
+    summary="Get Student's Room",
+    description="Retrieves the room allocation for the currently logged-in student, if published.",
+)
+def get_my_room(
+    db: Session = Depends(get_db),
+    current_student=Depends(get_current_student)
+):
+    session = current_student.allocation_session
+    if not session.is_published:
+        return {"published": False, "message": "Room allocation has not yet been published."}
+
+    membership = (
+        db.query(RecommendationMember)
+        .filter(RecommendationMember.student_id == current_student.id)
+        .first()
+    )
+
+    if not membership:
+        return {"published": True, "allocated": False, "message": "You have not been allocated a room."}
+
+    recommendation = membership.recommendation
+    roommates = [
+        {"id": m.student.id, "name": m.student.name, "roll_number": m.student.roll_number}
+        for m in recommendation.members
+    ]
+
+    return {
+        "published": True,
+        "allocated": True,
+        "room_number": recommendation.room_number,
+        "compatibility_score": recommendation.compatibility_score,
+        "reason": recommendation.reason,
+        "roommates": roommates
+    }
 
 @router.get(
     "/{session_id}",
