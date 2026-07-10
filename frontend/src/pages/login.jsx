@@ -142,6 +142,16 @@ function Login() {
                 />
               </div>
               {errors.password && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>}
+              {!isRegister && (
+                <div className="flex justify-end mt-2">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+              )}
             </div>
 
             <button

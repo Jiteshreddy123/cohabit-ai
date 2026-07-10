@@ -13,10 +13,24 @@ export const authApi = {
 
   studentLogin: async (college_code, email, password) => {
     const response = await apiClient.post("/student/login", { college_code, email, password });
-    if (response.data && response.data.access_token) {
+    if (response.data.access_token) {
       localStorage.setItem("token", response.data.access_token);
-      localStorage.setItem("user", JSON.stringify({ email, role: "student", id: response.data.student_id }));
+      localStorage.setItem("role", "student");
+      localStorage.setItem("user", JSON.stringify({ id: response.data.student_id }));
     }
+    return response.data;
+  },
+
+  forgotPassword: async (email) => {
+    const response = await apiClient.post("/forgot-password", { email });
+    return response.data;
+  },
+
+  resetPassword: async (token, newPassword) => {
+    const response = await apiClient.post("/reset-password", { 
+      token, 
+      new_password: newPassword 
+    });
     return response.data;
   },
 

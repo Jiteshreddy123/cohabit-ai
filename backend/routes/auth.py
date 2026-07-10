@@ -7,7 +7,10 @@ from schemas.student import StudentLoginRequest, StudentResponse
 from services.auth_service import authenticate_college, authenticate_student, create_access_token, hash_password, verify_token
 import crud.college as crud_college
 import crud.student as crud_student
-from utils.exceptions import AuthenticationError, DuplicateError
+from utils.exceptions import AuthenticationError, DuplicateError, NotFoundError, ValidationError
+import uuid
+from datetime import datetime, timedelta, timezone
+from services.email_service import send_reset_password_email
 
 router = APIRouter(tags=["Authentication"])
 security = HTTPBearer()
@@ -71,3 +74,50 @@ def student_login(login_data: StudentLoginRequest, db: Session = Depends(get_db)
     student = authenticate_student(db, college_code=login_data.college_code, email=login_data.email, password=login_data.password)
     token = create_access_token(data={"sub": str(student.id), "role": "student"})
     return {"access_token": token, "token_type": "bearer", "student_id": student.id}
+
+from schemas.college import ForgotPasswordRequest, ResetPasswordRequest
+
+@router.post("/forgot-password", summary="Request Admin Password Reset")
+def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    college = crud_college.get_college_by_email(db, email=request.email)
+    if not college:
+        # We don't want to leak whether the email exists, but we can just return a generic success message
+        return {"message": "If that email is registered, a password reset link has been sent."}
+
+    # Generate a unique token
+    reset_token = str(uuid.uuid4())
+    # 1 hour expiry
+    expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    college.reset_token = reset_token
+    college.reset_token_expiry = expiry
+    db.commit()
+
+    # Send the email
+    send_reset_password_email(college.email, reset_token)
+
+    return {"message": "If that email is registered, a password reset link has been sent."}
+
+@router.post("/reset-password", summary="Reset Admin Password using Token")
+def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    # Find college by token
+    college = db.query(crud_college.College).filter(crud_college.College.reset_token == request.token).first()
+    
+    if not college:
+        raise ValidationError("Invalid or expired reset token.")
+    
+    # Check expiry
+    if not college.reset_token_expiry or college.reset_token_expiry < datetime.now(timezone.utc):
+        raise ValidationError("Invalid or expired reset token.")
+    
+    # Hash new password
+    hashed_pwd = hash_password(request.new_password)
+    college.password = hashed_pwd
+    
+    # Invalidate the token
+    college.reset_token = None
+    college.reset_token_expiry = None
+    
+    db.commit()
+    
+    return {"message": "Password successfully reset. You can now log in."}

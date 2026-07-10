@@ -20,6 +20,8 @@ import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
 import StudentLogin from "./pages/StudentLogin";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import { authApi } from "./api/authApi";
 import { Navigate } from "react-router-dom";
 
@@ -65,6 +67,8 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/student-login" element={<StudentLogin />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* ── Protected Routes ───────────────────────────────── */}
           <Route path="/dashboard" element={<SharedRoute><Dashboard /></SharedRoute>} />

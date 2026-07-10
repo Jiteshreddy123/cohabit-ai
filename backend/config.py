@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     # ── External APIs ──────────────────────────────────────────
     GEMINI_API_KEY: str = ""
 
+    # ── SMTP Settings ──────────────────────────────────────────
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = ""
+
     # ── CORS ─────────────────────────────────────────────────
     # Comma-separated list of allowed origins, e.g. "http://localhost:3000,https://app.cohabit.ai"
     FRONTEND_URL: str = "http://localhost:3000"
