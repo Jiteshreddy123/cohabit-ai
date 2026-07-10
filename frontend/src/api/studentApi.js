@@ -25,5 +25,10 @@ export const studentApi = {
   deleteStudent: async (id) => {
     const response = await apiClient.delete(`/students/${id}`);
     return response.data;
+  },
+
+  resetPassword: async (id) => {
+    const response = await apiClient.post(`/students/${id}/reset-password`);
+    return response.data;
   }
 };

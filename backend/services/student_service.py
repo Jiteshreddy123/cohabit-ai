@@ -83,3 +83,12 @@ def delete_student(db: Session, student_id: int, college_id: int) -> None:
     if db_student.college_id != college_id:
         raise NotFoundError(f"Student with ID {student_id} not found in your college")
     crud_student.delete_student(db, db_student)
+
+def reset_student_password(db: Session, student_id: int, college_id: int) -> None:
+    db_student = get_student_by_id(db, student_id)
+    if db_student.college_id != college_id:
+        raise NotFoundError(f"Student with ID {student_id} not found in your college")
+    
+    hashed_pwd = hash_password(db_student.roll_number)
+    db_student.password = hashed_pwd
+    db.commit()

@@ -7,8 +7,25 @@ function StudentDetails() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetMsg, setResetMsg] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const handleResetPassword = async () => {
+    if (!window.confirm("Are you sure you want to reset this student's password back to their roll number?")) return;
+    setIsResetting(true);
+    setResetMsg(null);
+    try {
+      await studentApi.resetPassword(id);
+      setResetMsg("Password reset successfully.");
+      setTimeout(() => setResetMsg(null), 3000);
+    } catch (err) {
+      alert("Failed to reset password: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -71,6 +88,17 @@ function StudentDetails() {
             }`}>
               {student.gender}
             </span>
+            
+            <div className="mt-6 w-full pt-6 border-t border-gray-100 dark:border-gray-800">
+              <button
+                onClick={handleResetPassword}
+                disabled={isResetting}
+                className="w-full border border-red-200 dark:border-red-800/50 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+              >
+                {isResetting ? "Resetting..." : "Reset Password"}
+              </button>
+              {resetMsg && <p className="text-xs font-medium text-green-600 dark:text-green-400 mt-2">{resetMsg}</p>}
+            </div>
           </div>
         </div>
 

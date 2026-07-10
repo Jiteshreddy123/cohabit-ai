@@ -81,3 +81,17 @@ def delete_student(
     current_college: CollegeResponse = Depends(get_current_college)
 ):
     student_service.delete_student(db, id, current_college.id)
+
+@router.post(
+    "/{id}/reset-password",
+    status_code=status.HTTP_200_OK,
+    summary="Reset Student Password",
+    description="Resets a student's password back to their roll number."
+)
+def reset_student_password(
+    id: int,
+    db: Session = Depends(get_db),
+    current_college: CollegeResponse = Depends(get_current_college)
+):
+    student_service.reset_student_password(db, id, current_college.id)
+    return {"message": "Password successfully reset to roll number"}
