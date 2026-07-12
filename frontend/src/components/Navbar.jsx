@@ -26,7 +26,7 @@ function Navbar() {
       {isAuthenticated && (
         <div className="flex items-center gap-6">
           <span className="text-sm text-gray-400 hidden sm:inline">
-            Welcome, <strong className="text-white font-medium">{user.email}</strong>
+            Welcome, <strong className="text-white font-medium">{user.name || user.email || 'Student'}</strong>
           </span>
           
           <button

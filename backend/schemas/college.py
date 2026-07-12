@@ -24,6 +24,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     college_code: Optional[str] = None
     student_id: Optional[int] = None
+    student_name: Optional[str] = None
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr

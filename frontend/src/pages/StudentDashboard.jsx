@@ -8,6 +8,9 @@ const StudentDashboard = () => {
   const [error, setError] = useState(null);
   const [studentData, setStudentData] = useState(null);
   const [roomData, setRoomData] = useState(null);
+  
+  // Get student info from localStorage
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -36,7 +39,7 @@ const StudentDashboard = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Student Dashboard</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Welcome to your Cohabit-AI portal.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Welcome{user.name ? `, ${user.name}` : ''} to your Cohabit-AI portal.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

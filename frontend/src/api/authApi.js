@@ -15,8 +15,12 @@ export const authApi = {
     const response = await apiClient.post("/student/login", { college_code, email, password });
     if (response.data.access_token) {
       localStorage.setItem("token", response.data.access_token);
-      localStorage.setItem("role", "student");
-      localStorage.setItem("user", JSON.stringify({ id: response.data.student_id }));
+      localStorage.setItem("role", "student"); // Keep for legacy
+      localStorage.setItem("user", JSON.stringify({ 
+        id: response.data.student_id,
+        role: "student",
+        name: response.data.student_name
+      }));
     }
     return response.data;
   },
@@ -41,6 +45,7 @@ export const authApi = {
 
   logout: () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
     localStorage.removeItem("user");
     localStorage.removeItem("college");
     window.location.href = "/login";

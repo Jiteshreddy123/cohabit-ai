@@ -73,7 +73,12 @@ def student_login(login_data: StudentLoginRequest, db: Session = Depends(get_db)
     """
     student = authenticate_student(db, college_code=login_data.college_code, email=login_data.email, password=login_data.password)
     token = create_access_token(data={"sub": str(student.id), "role": "student"})
-    return {"access_token": token, "token_type": "bearer", "student_id": student.id}
+    return {
+        "access_token": token, 
+        "token_type": "bearer", 
+        "student_id": student.id,
+        "student_name": student.name
+    }
 
 from schemas.college import ForgotPasswordRequest, ResetPasswordRequest
 
